@@ -309,7 +309,184 @@ procedure Dispose(var P:Pointer);
 
 procedure GetMem(var P:Pointer;Size:Integer);
 procedure FreeMem(var P:Pointer);
+其中getMem可以分配任意大小的内存
+举例
+var
+   p1:^integer;
+   p2:PChar;
+begin
+   New(p1);
+   GetMem(p2, 40);//分配40个字节的内存
+   FreeMem(p2);
+   Dispose(p1);
+   readln;
+end.
 
 3.5变体类型
+变体类型可以容纳多种不同类型的值，可根据变量的类型自动转换内部存储结构，但是不能容纳
+记录、静态数组、集合、文件、类、类引用、指针
+一个变体变量站16个字节，分为两部分：变量值及变量值的类型码
+变量值可以是一个普通的变量值，也可以是一个指向变量值的指针
+Delphi提供两种方式获取变体变量中数据的实际类型
+第一种，使用TVarData结构，相当于record的变体类型
+举例
+var
+   v:variant;
+begin
+   v:='Delphi';
+   if TVarData(v).VType=varUString then
+      writeln('v中的实际类型为UnicodeString');
+end.
+第二种，将标准函数VarType返回值与预定义常量varTypeMask进行and逻辑运算可返回变体变量值的确切类型，
+VarType在接受变体类型的参数V并返回TVarData(V).VType
+举例
+var
+   v:variant;
+begin
+   v:=2010;
+   if VarType(V)=varDouble then
+      writeln('v中的实际类型为Double类型');
+end.
+注：VarType(V)和TVarData(v).VType将返回一个整数形式的类型码；
+system单元中声明了每种类型所对应的类型码，使用时可以自行查询;
+（源文档P56有类型码表格）
+变体变量的初始值是预定义常量Unassigned，常用的预定义NULL在变体类型中表示未知的值或由于错误丢失的值；
+默认情况下NULL小于包括Unassigned在内的任何值，但并非绝对。
+变体变量的赋值举例
+var
+   V1,V2,V3,V4,V5:Variant;
+   I:integer;
+   D:Double;
+   S:string;
+begin
+   V1:=1;
+   V2:=1234.5678;
+   V3:='Hello world!';
+   V4:='1000';
+   I:=V4;//I转变成变体类型
+   V5:=V1+V2+I;
+   I:=V1;
+   D:=V2;
+   S:=V3;
+   S:=V5;
+end;
+如果赋值超过最大值，编译器自动反绕；
+除了^、is、in之外的所有操作符都接受变体类型的运算数；
+除了比较运算总是返回一个逻辑型的值外，其他对变体变量执行的操作均将返回一个变体类型的值；
+以上有一个例外，当赋值符号右边存在null时，左边的变量值一定是null
+举例
+var
+   v:variant;
+   ...
+   V:Null+3;
+   ...
+注：Delphi中并不存在Null，代码中的Null实为定义于Variants单元中的标准函数，声明为：
+function Null:Variant;
+在程序的uses中添加Variants单元后，Null可以作为预定义常量来使用
+变体类型转化分为变量转换和变量值转换
+前者实行强制转换，如
+i:=integer(V);只不过转换规则稍有差异（源文档附录B）
+后者必须使用Delphi预定义例程VarAsType和VarCast进行转换
+举例
+uses
+   SysUtils,Variants;
+var
+   v1,v2:variant;
+begin
+   v1:=195;
+   writeln(TVarData(v1).VType);//显示17，表示v1的值为Byte
+   writeln(TVarData(v2).VType);//显示0，Unassigned
+   v2:=VarAsType(v1,varInteger);
+   writeln(TVarData(v2).VType);//显示3，v2的值是Integer
+   VarCast(v1,v2,varByte);
+   writeln(TVarData(v1).VType);//显示17，表示V1的值是Byte类型
+   readln;
+end.
+变体数组
+Delphi不允许将一个静态数组作为值赋给变体变量，但是可以将一个静态的变体数组赋给变体类型的变量
+举例
+var
+   v0:array[0..3] of variant;
+   v1,v2:variant;
+begin
+   v1:=VarArrayOf(v0);
+   v2:=VarArrayCreate([0,3], varVariant);
+end.
+注：v1是一个变体数组变量，其值是一个含有三个成员的数组，v2与v1完全相同
+v:= VarArrayCreate([0,9,2,5], varInteger);
+注：这是一个二维的变体数组变量，第一维有10个成员，序数为0...9，第二维有4个成员，序数为2,3,4,5
+变体数组的成员无法用指针指向某个成员获取其在内存中的单独地址；
+作为例程参数时也不能使用var或out的传递方式
 
 3.6运算符
+分为有序类型运算符、数学运算符、逻辑运算符、位运算符、字符串运算符、集合运算符、指针运算符、关系运算符
+五种有序类型运算符：ord，pred，succ，hign，low
+举例：
+ord('A')=65
+返回指定值在值域中的序数值，因为A在字符集中的序数为65；
+ord不接受Int64类型的参数；
+pred返回指定值的前一个值，如
+pred('B')='A',pred(8)=7；
+succ,返回下一个值，succ(8)=9；
+high返回上界，如high(byte)=255;
+low返回下界，low和high还可以用于静态数组和短字符串，可以得到数组的最大和最小序数值
+数字运算符:+,-,*,/,div,mod
+div仅支持整数，29div10=2；
+x/y的类型是extended，无论xy的类型是什么；
+对其他运算符来说，只要有一个是实型，都会自动转化为extended；
+至少有一个是Int64时，转化为Int64；
+当运算数是Integer的子界类型如byte、word时，编译器将其当成Integer
+> 我觉得这个就是Java的自动装箱拆箱吧
+mod是求余数，29mod10=9；
+x mod y，x div y，x/y中，y不能等于0；
+除了以上，还有两个一元运算符+，-
++7，-X
+逻辑运算符：not,and,or,xor
+not(True)=False;not(False)=True;
+另外，or运算当第一个运算数确定是True的时候，第二个不会被运算，
+也就是相当于java中的'||',and也是同理，'&&';
+位运算符：not,and,or,xor,shl,shr
+每个字节有八位（bit），位运算符用于操作这些字节位
+14 and 2=2,0000 1110 and 0000 0010 = 0000 0010
+x shl y,x整体左移y的个字节位
+14 shl 2 得到0011 1000，右边用0补全，左边溢出则舍弃
+在进行移动前编译器会将y进行变化，假设x的类型在内存中占用n字节位，变换后的y为原来的y和n求余后的值
+举例
+x shl 40，变成x shl 8，因为40 mod 32 = 8
+shr是右移
+所有的位运算符只能计算整数，其计算结果都是整数。
+举例
+var
+   n:Integer;
+begin
+   n:=not 1.2;//wrong
+   n:=4 shl 0.1;//wrong
+   n:=100 shl 2;//right
+end.
+字符串运算符只有一个'+'
+得到的字符串赋给短字符串时若太长，只保留前255个字节
+集合运算符
+S1，S2是两个同类型的集合，X是任意与集合同类型的值
+S1+S2 并集
+S1*S2 交集
+S1-S2 差集，去掉S1中S2也有的
+S1=S2 是否完全相同
+S1<>S2 是否不完全相同
+S1>=S2 是否包含
+S1<=S2 是否被包含
+X in S1 X是否是S1的成员
+指针运算符
+除了@和^之外，还有=,<>,+,-
+=,验算两个指针是否指向同一个对象
+<>,是否指向不同的对象
++和-只能用于PWideChar及PAnsiChar
+先定义两个指针P1和P2，假设它指向的对象在内存中占用n个字节，再定义一个整数变量I
++仅用于一个字符指针与一个整数相加的情形，如P1+I或者I+P1，表示P1的起始地址加上n*I个字节后得到的新位置
+-仅用于两个字符指针相减或者一个字符指针减去一个整数，P1-P2或P1-I
+P1-I与P1+I类似，从P1起始地址减去n*I个字节
+P1-P2将P1的指针值减去P2的指针值，得到的值为两者的绝对数值除以n的商
+举例
+P1，P2是WideChar类型的指针，两者的指针值是100,120，则结果是-10
+> n是2？
+关系运算符
+=,<>,<,>,<=,>=

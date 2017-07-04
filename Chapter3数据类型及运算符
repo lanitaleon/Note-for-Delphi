@@ -1,0 +1,315 @@
+类型：简单类型、字符串类型、结构类型、指针类型、过程类型、变体类型
+3.1简单类型包括整型、字符型、布尔型、枚举类型、子界类型、实型
+整型：Integer，Cardinal，Shortint，Smallint，Longint，Int64，Byte，Word，Longword，UInt64
+Integer和Cardinal最为常用，等同于longint，longword
+取值范围
+类型名称     取值范围                  存储格式
+Integer    -2147483648-2147483647   signed 32-bit
+Cardinal   0-4294967295             unsigned 32-bit    
+实型：Real48，Single，Double，Extended，Comp，Currency
+Real为一般类，其余为基本类型，Double在实现上完全等同于Real类型，使用Real在大多数情况下可获得最好性能
+基本字符类型：AnsiChar，WideChar
+这两者的变量之间不能互相赋值，Char是最常用的字符类型，是以上两种类型的别名
+在Delphi2010中Char默认是WideChar
+布尔类型：Boolean，ByteBool，WordBool，LongBool
+Boolean最为常用，其他类型赋值给布尔型变量时，必须显式进行转化
+begin
+   if boolean(0) then
+      writeln('False');//不显示
+   if boolean(3) then
+      writeln('True');//显式true
+end.
+枚举类型表示一个有次序且数量有限的值的集合
+举例
+Type
+   BasicColor=(red, green, blue);
+枚举类型为BasicColor,包含三个成员red，green，blue，三者序数为0,1,2
+可以使用BasicColor(0),BasicColor(1),BasicColor(2)表示red，green，blue
+序数可以指定，未指定为前一位+1，第一位未指定则为0
+举例
+Type
+   myenum=(i1,i2,i3=4,i4,i5=8);
+序数依次为0,1,4,5,8，看上去只有五个成员，其实包含了九个
+因为成员个数是由最大序数和最小序数决定的
+没有被声明的四个成员可以使用序数索引表示，如myenum(6)表示第七个成员
+枚举类型的每一个成员都是一个直接常量，就像英文字母ABC一样，不代表其他任何值，其本身正是一个确定值
+每个成员的标识符被理解成一个符号常量，如
+Type
+   myenum=(i1,i2,i3);
+相当于
+Const
+   i1=0;
+   i2=1;
+   i3=2;
+如果再次定义
+Var
+   i1:string;
+编译器就会报错，i1不能被重新使用
+枚举类型的声明方式举例
+Type
+   myenum=(i1,i2,i3);
+var
+   v1:myenum;
+   v2:(a,b,c);
+在v1的有效范围内，v2不能使用v2(i1,i2,i3);否则冲突
+子界类型，在某种其他有序类型的值域中划定一个范围即为子界类型
+如byte在Integer中插入0,255两个边界
+举例
+有枚举类型myenum(i1,i2,i3,i4,i5);可定义
+Type
+   mysub = i3..i5;
+也可以
+var
+   mycap:'a'..'z'; 
+注：使用type声明时，如果'='后第一个字符为'('，编译器将自动将此声明当成枚举类型的声明
+举例
+Type
+   mysub=(2+3)*2..(6+4)*4
+编译器认为后面是一个枚举类型，于是报错
+举例
+Type
+   myenum=0..10;
+var
+   v1:myenum;
+   v2:1..10;
+与枚举类型不同，此处不会报错，因为子界类型只是截取，没有声明任何除了名称之外的标识符，不存在冲突
+但是如果所赋的值不在值域内，会报错，如v1:=15;
+
+3.2结构类型包括集合类型、数组、记录类型
+集合类型声明举例
+Type
+   myset = set of BaseType;
+集合类型的规定：
+1.成员必须是同一有序类型，最多256个
+2.成员具有唯一性，同一集合中不存在相同的成员
+3.成员具有无序性，无法用序数表示集合成员
+4.集合的值域由BaseType的值域决定
+举例
+Type
+   set1 = set of byte;
+   set2 = set of 1..9;
+   set3 = set of (red,green,blue);
+集合类型变量的声明方式举例
+var
+   vset1:set1;
+   vset2:set of byte;
+集合类型变量赋值举例
+vset1=[1,3,5];
+数组分为静态数组和动态数组
+静态数组是指初始化时就被分配了内存的数组，大小不能更改
+举例
+Type
+   typeName = Array[IndexType] of BaseType;
+Type
+   myarray = Array[5..9] of integer;
+myarray含有五个成员，序号分别为5/6/7/8/9
+定义二维数组举例
+Type
+   mutiarray = array[1..3] of array[8..9] of integer;
+   或
+   mutiarray = array[1..3,8..9] of integer;
+数组赋值只能逐个赋值；
+数组变量的类型由名称决定，如
+Type
+   A1:array[1..5] of integer;
+   A2:array[1..5] of integer;
+编译器将A1，A2当成两个不同的类型，因为A1和A2所属的数组均无名称，可以改为
+Type
+   A1,A2:array [1..5] of integer;
+动态数组声明举例
+Type
+   myarray = array of char;
+var
+   A1:myarray;
+可以直接写成
+var
+   A1:array of char;
+动态数组变量在赋值前必须设置大小，但是并未要求一次性设置全部维的长度；
+对N维数组来说，只有n维的长度确定了，才能指定n+1维的长度
+举例
+var
+   dA:array of array of integer;
+调用setlength
+SetLength(dA,4,2);
+4行2列，dA[0][0],dA[0][1],dA[1][0],dA[1][1],...也可以写成dA[0,0],dA[1,0],...
+三个标准函数：High(),Low(),Length()
+成员序号的最大值，最小值，数组的长度
+动态数组只能设置数组的长度，不能设置成员的序号，序号都是从0开始的
+传统记录类型（不涉及面向对象部分）
+看了看定义感觉就像Java里定义一个实体类
+举例
+Type
+   TRec = record
+      mem1:type1;
+      mem2:type2;
+      ...
+      memN:typeN;
+   end;
+成员可以是任何类型；
+每一行用分号隔开，但是typeN后的分号可以不写；
+相同类型的成员可以写在一行,如
+Type
+   Std = record
+      Name,ID:string;
+      Height,High,StdClass:integer;
+   End;
+赋值举例
+program RecordRExample;
+{$APPTYPE CONSOLE}
+type
+   TStd = record;
+      Name:string;
+      Grade:integer;
+   end;
+var
+  A,C:TStd;//两种定义方式
+  B:record
+        Name:string;
+        Grade:integer;
+     end;
+begin
+   B.Name := 'BName';//赋值
+   A := TStd(B);//不能直接赋值，需要经过类型转化
+   C.Name := B.Name;//只要类型兼容就可以
+   writeln(A.Name);//显示A的姓名
+   writeln(C.Name);
+   readln;  
+end.
+注：虽然B不能赋值给A，但是A可以赋值给C
+C:=A;
+编译器会将A的所有成员逐一赋值给C的相应成员，如果记录变量中有引用类型的成员，情况较为复杂，后续章节中会具体描述。
+也可以手动挨个赋值，这里复习一下with语句
+with C do
+begin
+   Name:='BName';
+   Grade:=2;
+end;
+变体记录举例
+统计公司员工的月工资情况
+TSalary = record
+   name:string;
+   MonthWage:Currency;
+end;
+然而领导是年工资，在不定义新的记录的情况下，添加一个YearWage属性可以解决，但是这样一来，普通员工的这个属性都为空
+此时，我们可以使用共址变量
+TSalary = record;
+   name:string;
+   MonthWage:Currency;
+   YearWage:Currency absolute MonthWage;
+end;
+很遗憾的是，记录成员不能使用共址变量，以上声明无法编译（？？？我都打了这么多行了突然不行，气死）
+变体记录采取一种与之类似的方法解决这个问题，
+变体记录的实质就是在记录中声明若干个共用同一块内存的共址变量，但是声明方式完全不同
+模板：
+type
+   记录名=record
+      字段1：类型1;
+      字段2: 类型2;
+      ...
+      字段n：类型n;
+   case [tag:] 有序类型 of
+      常量1: (字段声明);
+      常量2: (字段声明);
+      ...
+      常量n: (字段声明)[;]
+注：case部分为变体记录的专有部分，必须在所有普通成员之后
+[]包裹的内容可以省略；常量必须是指定的有序类型；
+每个常量可以是多个值，用','隔开；
+每个字段声明可以包括多个字段的声明，';'隔开；
+字段声明不能被声明成长字符串，动态数组，变体类型，接口以及包含这些类型的其他结构类型如记录，数组等；
+tag和常量对用户来说没有任何用，只需保证规范性。
+举例
+type
+   TRec = record
+      s:string;
+   case Integer of
+      1:(f1:integer;
+         f2:String[4]);
+      2,6,8:(f3:string[8]);
+   end;
+这里我们回忆一下第二章的内容，对于变体记录，如果出现了一个tag值，则必须赋值；
+只有含有tag值时变体记录中的变体部分才能被赋值。
+var
+   Rec:TRec;
+begin
+   rec.s:='5';
+   rec.f1:=4;
+   rec.f2:='ABCD';
+   rec.f3:='Delphi32';
+   writeln(rec.f2);
+   readln;
+end.
+这里屏幕会显示什么？
+这里声明了一个成员为f1和f2的记录类型的字段，这个字段和f3共用一段内存而且二者占用的大小完全相等，所以完全共用；
+所以说，f1和f2赋值后，这八个字节为0004ABCD，然后f3被赋值，于是这八个字节为Delphi32；
+再显示f2的值，f2占用后四个字节，所以显示'hi32'。
+另外
+> 文档提示将f1和f2的声明交换顺序，结果我推测f2是Delp，然后实际结果是Delphi32，f1的结果是50
+--TODO
+在f3赋值后，f2的长度变成了8（虽然不明白为什么，因为共用内存？）
+f1是取了char'2'对应数字是50（虽然不知道为什么只取一个char2，因为只取四位？）
+
+> 文档又提示将f2和f3的赋值语句交换顺序，实际结果是ABCD，符合预期。
+
+3.3字符串类型
+常用类型：Shortstring，Ansistring，Widestring，Unicodestring
+shortstring最大长度255byte，另外三个2GB
+Delphi编程中通常将字符串变量声明为string类型，此类型与UnicodeString类型完全等价
+
+3.4指针：存储其他变量的地址包括其他指针的地址
+指针声明举例
+var
+   AnsiStr:^AnsiString;
+或者
+type
+   PAnsiStr=^AnsiString;
+var
+   AnsiStr:PAnsiStr;
+两种方法完全等价，只不过第一种更为简洁
+指针赋值举例
+1.将一个指针的值赋给另一个指针，两个指针指向同一个变量
+2.将一个变量的地址赋给一个指针变量
+var
+   P:^integer;
+   V:integer;
+begin
+   V:=89;
+   P:=@V;
+end;
+@V表示V的地址，P^表示89，即V的值
+取地址还可以使用标准例程Addr()代替，即Addr(V)
+
+指针的结构：占用4个字节，分成两部分，一部分存储指针指向的地址，一部分标识其指向的数据的具体类型，成为类型码区
+var
+   i:^integer;
+begin
+   i^:=9;
+end;
+这里计算机进行了两步操作，第一步，判断类型码是否与赋值一致，不一致无法通过编译；
+第二步，赋值给指针所指的变量，在读取i所指向的值时同样要先验证类型码的值，不同的数据按照不同的方式读取，A不会被读成65
+下面介绍无类型指针Pointer
+无类型指针在不进行类型转化时，只支持两种操作：将另一个指针或者地址值赋给Pointer指针；将Pointer指针赋给另一个指针
+举例
+var
+   p:pointer;
+   n:integer;
+begin
+   p:=@n;
+   n:=98;
+   writeln(pinteger(p)^);
+   pinteger(p)^:=78;
+   writeln(pinteger(p)^);
+   readln;
+end.
+注：P指向n，pinteger将p进行类型转化读取n的值，然后设置n的值为78，然后读取n的值
+动态指针：指向某一块没有分配名称的内存，用多少，拿多少
+分配和销毁动态指针的标准例程常用的是
+procedure New(var X:Pointer);
+procedure Dispose(var P:Pointer);
+
+procedure GetMem(var P:Pointer;Size:Integer);
+procedure FreeMem(var P:Pointer);
+
+3.5变体类型
+
+3.6运算符

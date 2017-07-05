@@ -308,4 +308,60 @@ Delphi提供五种调用约定
 例程的内嵌inline
 调用一个例程并不会浪费多少时间，但是在一些需要频繁调用一些较为短小的例程时，浪费非常可观，因此需要使用inline；
 编译器在编译inline例程时，会直接将某个例程的定义代码直接拷贝到调用它的位置
-P84
+举例
+function add(x, y: Integer):Integer; inline;
+begin
+   result := x + y;
+end;
+var
+   s : Integer;
+begin
+   s := add(2, 3);
+   Writeln(s);
+end.
+相当于
+var
+   s:Integer;
+begin
+   s := 2 + 3;
+   Writeln(s);
+end.
+内联例程能够提高程序的执行速度，但是增大了程序文件的体积，是以空间换时间；
+并非所有例程都可以内嵌到目标代码，如
+1.任何迟绑定方法包括virtual，dynamic，message不能内嵌
+2.含有汇编代码的例程不能内嵌
+3.类的构造函数和析构函数不能内嵌
+4.主程序块，单元的initialization和finalization部分中的代码不能内嵌
+5.单元中的内嵌例程先定义后使用，否则编译器无法得知该例程的实现
+6.含开放数组参数的例程不可内嵌
+7.包中的代码可以内嵌，however,inlining never occurs across packages boundaries
+8.循环引用的单元间不存在inline,但是其中的单元可以inline循环外的单元中的代码
+9.如果某个例程在interface部分声明但是其代码使用了定义于implementation部分的变量，则不可以inline
+10.如果某内嵌例程使用了其他单元中的代码，则其引用的单元必须全部在uses部分列出，否则不能内嵌
+11.如果while-do和repeat-util中使用的条件表达式含有例程，则此处的例程不会被内嵌，但在其他地方使用此例程可以内嵌
+举例
+function add(x, y: Integer):Integer; inline;
+begin
+   result := x + y;
+end;
+var
+   s, i: Integer;
+begin
+   s := add(2, 3);//L1
+   while s < 100 do
+      if s > 78 then
+         s := add(s, 1);//L2
+end.
+通过运行显示，L1处正常运行得到5，L2处无显示，说明L2处的代码保持不变，不会被内嵌；
+并且，编译器没有报错，说明编译器并非对每一种都会提出警告；
+一般情况下，当某单元的interface部分发生变化时，所有引用此单元的其他单元都需要重新编译；
+涉及内嵌例程时，稍有改变，只要一个内嵌例程的实现代码改变时，其所在的单元就被重新编译，所有引用此单元的其他单元也将重新编译。
+Delphi提供了{$INLINE}编译开关，用户可以手动控制编译器对内嵌例程的处理；
+此开关的三个状态：
+{$INLINE ON}
+当例程后加上inline，会被内嵌
+{$INLINE AUTO}
+加inline会被内嵌，如果某例程的代码不大于32字节，即使未加inline也会被内嵌
+{$INLINE OFF}
+所有例程都不会被内嵌，即使加上inline
+默认状态是{$INLINE ON}

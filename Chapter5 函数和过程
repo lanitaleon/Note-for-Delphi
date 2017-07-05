@@ -182,3 +182,130 @@ begin
    fun(876); //wrong,dont do this
 end.
 在例程运行期间，无类型参数与其他任何类型都不兼容，使用前必须进行类型转换，不过编译器并不确保这种转换一定有效；
+举例（来自delphi2010说明文档）
+function Equal(var Source, Dest; Size: Integer): Boolean;
+type
+   TBytes = array[0..MaxInt - 1] of Byte;
+var
+   N : Integer;
+begin
+   N := 0;
+   while (N < Size) and (TBytes(Dest)[N] = TBytes(Source)[N]) do
+      Inc(N);
+      Equal := N = Size;
+end;
+
+短字符串参数
+声明方式：直接声明为shortstring类型；或者利用string后限定长度从而定义特定长度的字符串string[9]
+但是在声明例程的参数时不能使用第二种方法，也就是说
+procedure Check1(var S: string[20]);
+是错误的，不能通过编译；
+取而代之，可以这样
+type
+   Mystring = string[20];
+procedure Check2(var S:Mystring);
+注：还可以使用openstring类型解决，此类型接受任何长度的短字符串，
+如果同时开启{$H+}和{$P+}，则例程中string类型参数和openstring类型参数等价；
+但是应当尽量使用长字符串AnsiString或者UnicodeString等；
+实际上短字符串参数具有这种限定是因为短字符串是一个字符数组，就相当于
+procedure Check1(var S: array[0..20] of ansiChar);
+而根据后面一句所讲，不可以指定索引值，所以不能通过编译；
+
+数组参数规则：声明一个数组类型的参数时不可以指定数组的索引值
+因此我们可以
+type
+   myarray = array[0..9] of = Integer;
+procedure sample(var a:myarray);
+或者利用开放数组
+procedure sample(var a: array of Integer);
+由于开放数组参数的声明方式与动态数组一致，当我们需要声明动态数组变量时，要这样
+type
+   darray = array of Integer;
+procedure sample(var a: darray);
+开放数组和动态数组的区别是：
+开放数组既可以容纳任意长度的静态数组，也可以容纳动态数组；
+动态数组类型的参数只能接纳动态数组，无法接纳静态数组
+举例
+program Sample;
+{$APPTYPE CONSOLE}
+uses SysUtils;
+type
+   darray = array of Integer;//声明动态数组类型darray
+procedure check(var s: array of integer);
+begin
+   //do nothing
+end;
+var
+   s:array[0..9] of Integer;
+begin
+   check(s);
+end.
+注：如果把s的类型换成s:darray也可以通过编译
+数组参数声明为什么不能指定索引呢？
+var 参数: 类型名
+类型名只能是标识符或者标识符的组合，显然string[20]不是合法的标识符，[0..9]也不是；
+array of type是标识符的组合，所以可以声明参数，同理，^type也不可以声明一个指针类型的参数。
+还有一类数组参数Variant Open Array Parameters，变体开放数组参数
+举例
+procedure M1(value:array of const);
+注：array of const实际上等效于array of Variant;
+举例
+function MakeStr(const Args: array of const): string;
+var
+   I: Integer;
+begin
+   Result := '';
+   for I := 0 to High(Args) do
+      with Args[I] do
+         case VType of
+            vtInteger: Result := Result + IntToStr(VInteger);
+            vtBoolean: Result := Result + BoolToStr(VBoolean);
+            vtChar: Result := Result + VChar;
+            vtExtended: Result := Result + FloatToStr(VExtended^);
+            vtString: Result := Result + VString^;
+            vtPChar: Result := Result + VPChar;
+            vtObject: Result := Result + VObject.ClassName;
+            vtClass: Result := Result + VClass.ClassName;
+            vtAnsiString: Result := Result + string(VAnsiString);
+            vtUnicodeString: Result := Result + string(VUnicodeString);
+            vtCurrency: Result := Result + CurrToStr(VCurrency^);
+            vtVariant: Result := Result + string(VVariant^);
+            vtInt64: Result := Result + IntToStr(VInt64^);
+         end;
+end;
+注：这是一个case选择语句包在一个with语句里，仔细看清楚，end个数没错；
+调用这个函数时
+MakeStr(['test', 100, ' ', True, 3.14159, TForm]);
+程序返回字符串
+'test100 T3.14159TForm'
+
+5.3例程的定义与使用
+局部声明区域所声明的所有标识符包括变量名、常量名、类型名、套嵌例程名等只在本例程内有效；
+局部声明区域所声明的所有标识符不能与例程名称、例程的参数名称相同，如果例程是一个函数，则标识符result也不能使用；
+若本例程事先声明过，则定义此例程时，可以省略参数列表、返回值部分；
+result是Delphi声明的一个预定义变量，其作为局部变量被隐含地声明于例程；
+重要的是，result和return不同，程序不会因为result被赋值而中止；
+函数名也可以作为返回值
+举例
+function sample: integer;
+begin
+   sample := 98;
+   sample := 56;
+end;
+对于预定义的result而言，只有编译开关{$X}处于{$X+}状态时，才有效；
+{$X+}是系统的默认设置，只要不去手动改为{$X-}即可；
+相对于result而言，函数名不能作为变量进行类型转换等变量操作；
+有时候函数名可能会被当成循环调用函数，因此建议都使用result。
+
+函数的调用约定
+Delphi提供五种调用约定
+从左到右：pascal，register
+从右到左：cdecl，stdcall，safecall
+通常默认的register最为有效；如果某个对象属性的访问权限是published，这个属性的读写方法必须使用register；
+当调用某个使用C/C++编写的共享库.dll或.lib中的例程时，必须使用cdecl；
+当调用其他的外部代码时，尽量使用stdcall或safecall，Windows API函数大多使用这两种方式。
+
+例程的内嵌inline
+调用一个例程并不会浪费多少时间，但是在一些需要频繁调用一些较为短小的例程时，浪费非常可观，因此需要使用inline；
+编译器在编译inline例程时，会直接将某个例程的定义代码直接拷贝到调用它的位置
+P84

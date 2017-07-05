@@ -1,0 +1,184 @@
+procedure过程，没有返回值；
+function函数，必须指定返回值；二者统称例程。
+5.1例程的声明
+procedure 过程名(形参列表);[指示字];[调用约定;]
+function 函数名(形参列表):返回值类型;[指示字];[调用约定;]
+形参列表一般形式
+var 参数1: 类型名1; var 参数2: 类型名2; ... var 参数n: 类型名n
+var是参数的传递方式，可用out或const代替；
+同一例程中不允许有同名的参数；
+列表中的每个形参项后以分号结尾，最后一个不能有分号；
+返回值不能是任何形式的文件类型；
+指示字为某些特定的关键字，用virtual、abstract等，在声明例程时可以不加任何指示字；
+调用约定在后续章节提到；
+var p1, p2:integer是可以的；
+
+external声明举例
+procedure sample(var s:string); external 'SomeDLL.dll';
+当需要从其他编译单元.dll文件中引用一个例程时，如上可以声明；
+external是.dll的完整名称包括路径名和文件名，除非.dll和当前编写的程序位于一个文件夹可以不加路径；
+procedure sample(var s:string); external;
+当需要从其他编译单元.obj中引用时,如上可以声明；
+声明前需要在程序中引用相应的.obj文件，格式为
+{$L BLOCK.OBJ}
+
+forward用于声明一个例程，它可以使例程在定义前就被使用
+举例
+program forward_sample;
+{$APPTYPE CONSOLE}
+
+uses
+   SysUtils;
+procedure fun1; forward;//此处的forward去掉无法通过编译
+
+procedure fun2;
+begin
+   fun1;
+end;
+
+procedure fun1;
+begin
+   //
+end;
+
+begin
+end.
+
+5.2例程参数
+形参和实参举例
+procedure Sample(var S:string; var I:integer);
+这里S和I就是形参，形参不能是静态数组及文件类型
+Sample('delphi', 101);
+这里'delphi'和101就是实参
+
+参数传递方式：传址方式，传值方式，常量方式，输出方式
+传址方式举例
+procedure var_sample(var I:integer);
+begin
+   I := 2 * I;
+   Writeln(I);
+end;
+
+var
+   N:integer;
+begin
+   N := 9;
+   var_sample(N);
+   Writeln(N);
+   Readln;
+end.
+var声明的参数采用传址方式传递，这种参数将变量的地址传给例程，如果形参的值改变，实参的值也会改变；
+显示I和N都是18，可以证实确实改变了实参的值；
+调用例程时传给var参数的一定是可以被赋值的变量或者表达式，决不能是常量，除非：
+> 当一个对象类型的常量传入例程时，对象的属性可以被改变；
+> 如果开启了{$J+}开关，常量与变量无甚区别，此时也可以将常量传入，out也是这样
+
+传值方式举例
+procedure sample(i:integer);
+没有任何关键字的参数采用传值方式传递，这种方式传递的参数值也会发生变化但是影响不到原来的变量；
+实际上系统在参数传递前将参数复制了一份，然后将复制的新变量传给例程，例程运行完毕后，新变量被销毁；
+
+常量方式举例
+procedure const_sample(const I:integer);
+使用const声明的参数任何时候都不会被改变，强行改变会编译错误；
+除非是对象引用或者是指针，依然可以改变对象的属性值或字段值，也可以改变指针所指向的变量的变量值；
+举例
+type
+  pi = ^integer;
+procedure p_sample(const I:pi);
+begin
+   I^ := 2 * I^;
+   Writeln(I^);
+end;
+
+var
+   N:integer;
+begin
+   N := 9;
+   p_sample(@N);
+   Writeln(N);
+   Readln;
+end.
+注：^integer并非合法标识符所以先声明新类型；
+I不可以指向其他的变量，但是I指向的变量的值可以被改变。
+
+输出方式举例
+function sample1(S:string):integer;
+begin
+   result := length(s);
+end;
+
+procedure sample2(S:string; out Leng:integer);
+begin
+   leng := length(s);
+end;
+
+var
+   I, N:integer;
+   S:string;
+begin
+   S := 'delphi';
+   I := sample1(S);
+   sample2(S, N);
+end;
+注：I和N的值都是6；
+与普通函数返回值不同的是，out可以同时返回多个值；
+其实var和out在使用上完全一样，区别是out参数传入例程前，系统会自动清空变量原来的值，var没有这种处理；
+举例
+procedure sample(out S:string);
+begin
+   //do nothing
+end;
+
+var
+   str:string;
+begin
+   str := 'delphi';
+   Writeln(str);//show delphi
+   sample(str);
+   Writeln(str);//show nothing
+   Readln;
+end.
+
+默认参数举例
+function myfun(var I;integer = 3; var S:string = 'Delphi'):string;
+如果调用此例程时没有指定参数S的值，则编译器会自动将字符串'Delphi'赋给S；
+举例
+myfun();
+myfun(3);
+myfun(3, 'Delphi');
+以上结果均相同；
+然而只有直接常量值可以指定给参数作为默认值，有些类型却根本没有常量值，所以这些类型就没有默认值；
+这些类型包括：记录、变体、文件、静态数组、对象类型
+以下类型的参数仅能使用nil作为默认值：
+动态数组、例程类型、类、类引用、接口
+关于默认参数的规定：
+1.当某一个参数被指定了默认值，此参数后的全部参数都要有默认值；
+同理，在调用的时候，如果某个参数使用了默认值，此后的所有指定了默认值的参数均使用默认值；
+2.当某个参数项有多个参数名时，不可以指定默认值；
+举例
+procedure sample(var a, b:integer);
+3.当某个例程类型中指定了默认参数时，这些默认参数将掩盖具体函数中的默认值，之后在例程类型章节会详述；
+如果一个例程有默认参数，则声明这个例程的时候就要指定这些默认值，在定义时可以省略不写，如果不省略应当与声明中的形式完全一样；
+重载例程时，默认参数也很容易造成歧义，之后再重载例程章节详述。
+
+特殊类型的参数：无类型参数，短字符串，数组；
+无类型参数举例
+function sample(var C):integer;
+无类型参数的传递方式不可以是默认，可以是const，out，var
+调用例程时不可以将整型直接常量或值为整型的无类型符号常量赋予无类型参数，但是整型的类型常量可以
+举例
+procedure fun(const c);
+begin
+   //do nothing
+end;
+const
+   d = 987;//整型的无类型常量
+   c:integer = 987;//整型类型常量
+begin
+   fun('897'); //ok
+   fun(c); //ok
+   fun(d); //worng ,dont do this
+   fun(876); //wrong,dont do this
+end.
+在例程运行期间，无类型参数与其他任何类型都不兼容，使用前必须进行类型转换，不过编译器并不确保这种转换一定有效；

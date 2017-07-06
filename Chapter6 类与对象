@@ -54,3 +54,290 @@ m3b可以使用m2b和T1中声明的所有标识符，m2b或m2a可以使用T1中�
 m2a不能使用m3a中声明的标识符，m2a不能使用m2b中声明的标识符；
 
 类的继承举例
+type
+   子类名称 = class(父类名称)
+   end;
+注：Delphi中任何类在声明时必须指定其父类，如没有指定，默认为TObject
+不希望某个类派生子类的时候，可以用sealed
+举例
+type
+   TA = class sealed(TObject)
+   end;
+Delphi提供六个关键词来用于限定访问权限：public, private, protected, published, automated strict private, strict protected
+使用格式
+type
+   类名称 = class(父类名称)
+   private
+      //
+   protected
+      //
+   ...
+   end;
+无先后顺序，无必须有或者没有；
+strict private:严格私有，只能用于当前类中
+strict protected:当前类和子类
+以上两种成员，同一个类的不同对象之间也不能访问；
+private:只能用于定义这个类的.pas和.dpr
+protected:相当于将楼上扩展到任何子类可见
+public:对任何位置，任何类都可见，没有显示指定访问权限的时候，默认是public
+automated:用于Win32下的COM编程，不做介绍
+published:与public相同
+使用published应当注意：
+1.published属性值只能是有序类型、字符串、类、接口、变体、方法指针以及上下界在0到31之间的集合类型，实数不能是Real48类型
+2.不能以同一个名字公布两个或更多的重载方法
+
+6.3对象字段及对象函数
+类中声明字段和方法有两种：
+第一种可以通过类访问也可以通过对象访问，成为类字段或类方法；
+第二种只能通过对象而不能通过类访问，成为对象字段或对象方法；
+举例
+type
+   T1 = class
+   class var
+      i: Integer;
+   var
+      s: String;
+   end;
+var
+   obj := T1;
+begin
+   obj := T1.Create;
+   obj.i := 90;
+   obj.s := 'this is obj';
+   T1.i := 100;
+   T1.s := 'this is T1';//wrong
+end.
+T1只能访问i不能访问s，obj对象既可以访问i也可以访问s；
+类中var之后声明的所有字段都被认为是对象变量，除非：
+1.遇到其他的用于声明的关键词，如const或type
+2.遇到了访问权限的限定词，如public、strict private等
+3.遇到了方法的声明
+声明字段而未使用任何关键词时，默认为是对象变量
+type
+   T1 = class
+      i: Integer;
+   end;
+对象字段与对象静态绑定，
+静态绑定是指使用对象名称引用对象中的成员时，不管实际类型如何，编译器都会以声明时的类型为准而调用相应成员。
+举例：
+ty[e
+   T1 = class
+      i: Integer;
+   end;
+   T2 = class(T1)
+      s: String;
+   end;
+var
+   O1: T1;
+   O2: T2;
+begin
+   O1 := T2.Create;
+   O2 := T2.Create;
+   O1.i := 90;
+   O1.s := 'this is O1';//wrong
+   O2.i := 100;
+   O2.s := 'this is O1';
+end.
+T1的对象O1，虽然赋值时给了一个T2类型的对象，但是依然无法引用T2的成员s；
+
+对象方法的声明与普通例程的声明区别不大，相对于普通例程，方法后可以接更多的限定词；
+但是限定词的顺序要遵守一定的顺序，下表中列出了顺序，同一行的限定词不可能同时出现；
+reintroduce
+overload
+virtual,dynamic,override
+register,pascal,cdecl,stdcall,safecall
+abstract
+>>>这里复习一下chapter5 line300
+在工程文件中，类作为全局数据类型可以声明于任何地方，但是在声明后应当立即定义，除非使用了提前声明；
+方法可以分为四种：静态方法、消息方法、虚方法、动态方法。
+方法后未加任何限定词即为静态方法；
+此类型方法在编译时确定其所对应的方法体即实现；
+举例
+type
+   T1 = class
+      procedure F1;
+   end;
+   T2 = class(T1)
+      procedure F1;
+   end;
+procedure T1.F1;
+begin
+   Writeln('this is T1.F1');
+end;
+
+procedure T2.F1;
+begin
+   Writeln('this is T2.F1');
+end;
+
+var
+   O1: T1;
+   O2: T2;
+begin
+   O1 := T1.Create;
+   O2 := T2.Create;
+   O1.F1;           //T1.F1
+   O2.F1;           //T2.F1
+   O1 := O2;
+   O1.F1;           //T1.F1
+end.
+注：还是体现了静态绑定
+
+虚方法举例
+type
+   T1 = class
+      procedure F1;virtual;// change
+   end;
+   T2 = class(T1)
+      procedure F1;override;// change
+   end;
+   
+procedure T1.F1;
+begin
+   Writeln('this is T1.F1');
+end;
+
+procedure T2.F1;
+begin
+   Writeln('this is T2.F1');
+end;
+
+var
+   O1: T1;
+   O2: T2;
+begin
+   O1 := T1.Create;
+   O2 := T2.Create;
+   O1.F1;              //T1.F1
+   O2.F1;              //T2.F1
+   O1 := O2;
+   O1.F1;              //T2.F1
+   Readln;
+end.
+注：关键词virtual用于方法后表示某个方法是虚方法；
+T2中改写了T1中的虚方法F1，改写父类的方法只要，
+在子类中以完全相同的形式重新声明需要改写的方法，并将virtual(如果有的话)改成override;
+注意到最后变成了T2.F1，因为这里是动态绑定；
+静态绑定根据对象的真正类型来调用相应的方法，动态绑定是根据对象名称来调用相应的方法；
+而对象名称是一个指向对象实体的指针；
+
+动态虚方法表格Virtual Method Table，VMT
+表里是每个类拥有的虚方法的名称和虚方法所在地址；
+包含全部虚方法，没有改写的也在；
+
+很多情况下，子类只用了很少几个父类的虚方法，这样就造成了很大的浪费；
+使用动态方法可以应对这种问题，动态方法是一种特殊的虚方法，使用dynamic声明
+举例
+type
+   T1 =  class
+      procedure F1;dynamic;
+   end;
+动态方法与虚方法在使用上没有区别，只是内部存储机制不同；
+动态方法表Dynamic Method Table,DMT
+只存储当前类新定义的动态方法和改写的动态方法的地址；
+这样一来，在声明父类时，可以将最有可能被子类使用的方法声明为动态方法，然后再改写；
+当子类调用这些方法时，将直接查询DMT，避免了大量的无用查询；
+然而并不能将所有的方法都声明成动态方法，因为动态方法的查询过程层层递进，在一些复杂的几十代的派生类的系统中反而更慢；
+动态方法可以缩小程序占用的空间，但是调用速度稍慢，虚方法速度快，但是占用更多的空间；
+大多数情况下，Delphi推荐使用虚方法，除非是明显优于虚方法的时候。
+
+消息方法的一般形式
+procedure 方法名称(var 参数名: 消息类型); message 消息ID;
+只要系统产生了方法后的ID所标识的信息，此方法就会被调用；
+举例
+procedure WMClose(var MSG: TMESSAGE); message WM_CLOSE;
+在窗口被关闭时调用；
+定义消息方法的注意点：
+1.必须是procedure，参数只有一个并且是var传址
+2.参数类型必须是Delphi封装的消息类型，这些类型定义于Messages单元中
+3.方法后用message加消息ID限定，消息ID代表Windows消息的编号，在Messages单元中可以找到这些ID的声明
+
+抽象方法：只声明，不定义；在virtual或dynamic后加abstract；
+抽象方法应该是虚方法或动态方法；
+任何类只要有一个方法是抽象方法，该类就是抽象类；
+抽象类的对象不能调用抽象方法，可以调用非抽象方法；
+举例
+unit Unit2;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+  TForm2 = class(TForm)
+    Button1: TButton;
+    Button2: TButton;
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+  T1 = class
+    procedure M1;virtual;abstract;
+  end;
+  T2 = class(T1)
+    procedure M1;override;
+  end;
+
+var
+  Form2: TForm2;
+
+implementation
+{$R *.dfm}
+{ T2 }
+
+procedure T2.M1;
+begin
+  ShowMessage('T2.M1');
+end;
+
+procedure TForm2.Button1Click(Sender: TObject);
+var
+  obj: T1;
+begin
+  obj := T1.Create;
+  obj.M1;  //引起运行错误
+  FreeAndNil(obj);
+end;
+
+procedure TForm2.Button2Click(Sender: TObject);
+var
+  obj: T2;
+begin
+  obj := T2.Create;
+  obj.M1;
+  FreeAndNil(obj);
+end;
+end.
+> 实际运行的时候记得在右下角把监听例程绑定组件上，结果是点Button2有反应，Button1没有
+
+6.4类字段及类方法
+类字段是一个类的所有成员都拥有其值相同的信息；
+举例
+type
+   TBall = class(TObject)
+   class var
+      shape: String;
+      name: String;
+   end;
+var
+   obj: TBall;
+begin
+   TBall.shape := 'Round';
+   TBall.name := 'Ball';
+   obj := TBall.Create;
+   Writeln(obj.shape);
+   Readln;
+end.
+全部对象的name和shape都是这两个值；
+此区域以class var开始，以下四种情形之一结束：
+1.var声明另一个class var声明；
+2.包括对象方法类方法、构造、析构函数在内的任何一个例程的声明；
+3.任何一个属性的声明；
+4.任何一个访问权限限定词；
+注：const声明的标识符表示此标识符是一个类常量，并不表示class var的结束；
+

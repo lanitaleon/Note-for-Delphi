@@ -365,3 +365,288 @@ Delphi提供了{$INLINE}编译开关，用户可以手动控制编译器对内�
 {$INLINE OFF}
 所有例程都不会被内嵌，即使加上inline
 默认状态是{$INLINE ON}
+
+5.4例程指针
+在Delphi文档中称例程指针为过程类型，其所指的内容是一段代码构成的例程；
+普通例程变量声明举例
+function AddData(x:Integer):integer;
+去掉AddData即可声明
+var
+   F:function(x:Integer):Integer;
+当满足下列全部条件时，编译器会认为两个例程变量等效：
+1.参数的个数，类型，顺序完全一致；
+2.返回类型完全一致（仅针对函数）；
+3.声明时使用的关键字相同（全是procedure或function）
+举例
+Type
+   MyData = Integer;
+var
+   F1:function(x:Integer; y:Double):Integer;
+   F2:function(y:Double; x:Integer):Integer;
+   F3:procedure(x:Integer; y:Double);
+   F4:function(y:Double; x:Integer):string;
+   F5:function(x:Integer; y:Double):MyData;
+   F6:function(x:Integer; y:Double):Integer;
+只有F1和F6是相等的；
+例程变量的赋值举例
+program Project1;
+{$APPTYPE CONSOLE}
+uses
+   SysUtils;
+function AddData(X:Integer; Y:Real):Integer;
+begin
+   result := 2 * X;
+end;
+
+var
+   F, Q:function(X:Integer; Y:Real):Integer;
+begin
+   f := AddData;
+   q := f;
+end.
+赋值的两种方式：将例程变量的值赋给另一个变量；将一个定义好的例程名称赋给例程变量。
+例程变量的使用举例
+program Project1;
+{$APPTYPE CONSOLE}
+
+uses
+   SysUtils;
+function LinkStr(s:String): String;
+begin
+   result := '参数s的值为：' + s;
+end;
+
+var
+   F:function(s:String):String;
+   Str:String;
+begin
+   F := LinkStr;
+   Str := F('this is Delphi2010');
+   Writeln(LinkStr('this is Delphi2010'));
+   Writeln(F('this is Delphi2010'));
+   Readln;
+end.
+例程变量的使用和普通函数没有任何区别；
+对于过程变量，无论赋值与否，都应当用@@才能获取地址值；
+举例
+program Project1;
+{$APPTYPE CONSOLE}
+
+uses
+   SysUtils;
+procedure LinkStr;
+begin
+end;
+
+var
+   F, Q:procedure;
+   v2:String;
+begin
+   F := LinkStr;
+   Writeln(Integer(@@F));
+   Writeln(Integer(@F));
+   Writeln(Integer(@LinkStr));
+   Readln;
+end.
+@F和@LinkStr的值相同，都是例程LinkStr的地址，而@@F是F本身的地址；
+与大多数变量一样，例程变量的值可以是nil；
+调用一个nil的例程变量会导致运行期错误，使用标准函数Assigned()可以判断一个指针是否与某块内存绑定；
+不是nil返回True，是nil返回False。
+
+5.5匿名方法
+函数引用、过程引用、方法引用合称例程引用；
+例程引用类型变量的声明只有一种方式，先声明一个类型，再用这个类型声明一个变量
+举例
+Type
+   TFun = reference to 本体;
+var
+   RefFun:TFun;
+本体就是一个省略名称的普通例程声明
+举例
+Type
+   TFun = reference to function(x:Integer):Integer;
+这跟例程指针很相似，其实除了内部细节有所不同，其他用法也极其相似
+举例
+program RefSample_1;
+{APPTYPE CONSOLE}
+uses
+   SysUtils;
+type
+   TFun = reference to function(x:Integer):Integer;
+
+function fun(x:Integer):Integer;
+begin
+   Writeln(x + 100);
+end;
+
+var
+   F:TFun;
+begin
+   F := Fun;
+   F(12);
+   Readln;
+end.
+注：可以将一个普通例程赋予例程引用类型的变量；
+如果在声明例程引用类型时指定了默认参数，则所有此类型的变量中将含有此默认参数；
+举例
+type
+   TF = procedure(s:String = 'default');
+procedure echo1(s:String = 'delphi');
+begin
+   Writeln(s);
+end;
+var
+   F:TF;
+begin
+   F := ECHO1;
+   F;//显示default
+   Readln;
+end.
+其中F相当于
+procedure F(s:String = 'delphi');
+注意到ECHO1的值被覆盖，这正是Delphi默认参数的使用规定之一：
+当某个例程类型中指定了默认参数时，这些默认参数将掩盖具体函数中的默认值。
+如果TF中没有指定默认参数，无论F的值如何，调用时必须指定参数；
+> 这里试验了将TF中默认参数去掉，直接F;编译错误，F('123');可以运行，echo1();也可以运行
+
+未指定名称的例程称为匿名方法；
+匿名方法是由一段代码构成的直接常量，可以将这种常量作为值赋给函数引用类型的变量；
+举例
+function myfun(x:Integer):Integer;
+begin
+   //some code
+end;
+省略名称即
+function (x:Integer):Integer;
+begin
+   //some code
+end;
+这个匿名方法可以赋给一个函数引用类型的变量；
+与普通例程不同，匿名方法不存在声明，其本身就是一个直接常量，只不过其值是可以运算的代码；
+RefFun := function(x:Integer):Integer//这里不可以有分号
+             begin
+                //some code
+             end;
+匿名方法的调用举例
+program Sample;
+{$APPTYPE CONSOLE}
+uses
+   SysUtils;
+type
+   TFun = reference to procedure(x:String);
+var
+   F:TFun;
+begin
+   F := procedure(x:String)
+        begin
+           Writeln(x);
+        end;
+   F('Delphi2010');
+end.
+将其赋予一个例程引用类型的变量，然后按照调用普通例程的方式调用这个变量即可；
+匿名方法也可以直接作为一个例程的参数，由于匿名方法是一种直接常量，所以作为参数只能用const或value传递，不可以使用var或out
+举例
+program RefSample;
+{$APPTYPE CONSOLE}
+uses
+   SysUtils;
+type
+   TFun = reference to procedure(s:String);
+procedure Fa(s:String; Fun:TFun);
+begin
+   Fun(s);
+end;
+
+var
+   F:TFun;
+begin
+   Fa('Delphi2010', procedure(s:String)
+                    begin
+                       Writeln(s);
+                    end);//end后没有分号，注意
+   Readln;
+end.
+
+变量劫持举例
+program RefSample;
+{$APPTYPE CONSOLE}
+uses
+   SysUtils;
+type
+   TFun = reference to function(X:Integer):Integer;
+function ReturnFun(y:Integer):TFun;
+begin
+   Result := function(x:Integer):Integer
+             begin
+                Result := x + y;
+             end;
+end;
+
+var
+   fun:TFun;
+begin
+   fun := ReturnFun(20);// 1
+   Writeln(fun(22));// show 42
+   Readln;
+end.
+当执行语句1时，程序会依次执行如下操作：
+1.保存所有状态并离开当前区域进入函数RetunFun所在的区域以便运行此函数；
+2.运行函数ReturnFun并获得一个TFun类型的值
+3.携带ReturnFun的返回值回到原来的位置并将携带的值赋给变量fun
+这里应当注意到，y没有在返回时被销毁，依然是20不变，它的生存期变得与匿名函数相等，
+这种情况就是变量劫持：当某个局部变量被其所在例程中声明的匿名方法所使用，此变量的生存期将受匿名方法的控制而超出原来的生存期；
+注：匿名方法只能俘获其父例程中定义的局部变量
+编译代码时，如果编译器发现某个例程定义了一个匿名方法，其会自动产生一个与此例程相关联的数据结构，成为框架对象frame object,FO；
+FO可以存放变量和匿名方法；
+当编译器发现例程F1中的某个变量V被例程F2俘获，会把变量V记录在与F1相关联的FO_1上，
+同时编译器为F2创建框架对象FO_2，并创建一个由FO_2指向FO_1的引用；
+如果V同时被多个匿名方法俘获，系统会为每个匿名方法创建一个FO和一个指向FO_1的引用；
+当出现下列情形时，引用会被销毁：
+1.匿名方法超出的生存域期被销毁，此时其绑架的所有变量被同时销毁
+2.例程引用类型的变量的值发生了改变，不再是原来的匿名方法
+3.匿名方法被析构
+当所有指向FO_1的引用都被销毁，系统会销毁变量V；
+F1可以是普通例程或者匿名方法，F2一定是匿名方法；
+F2一定是定义在F1中的。
+
+5.6重载例程
+重载举例
+procedure Find(name:String);overload;
+procedure Find(size:Integer);overload;
+procedure Find(time:TDate);overload;
+...
+Find('d:\file\dest.txt');
+系统会自动判断类型找到相应的例程，重载的重是多重而非重新；
+重载是指同一个有效范围内某个例程名称同时对应多个不同的例程的定义；
+同一个名称对应的多个例程必须全是过程或者全是函数；
+声明一个重载例程只需在声明时加上限定符overload(定义例程时可以省略限定符)；
+例程的特征集：名称，参数个数，每个参数的类型；
+例程的特征集不包括参数的传递方式，所以如下的例程重载无法通过编译：
+procedure find(const c:String);overload;
+procedure find(var c:String);overload;
+系统寻找合适的find过程：
+1.确定名称find，列出所有可用的find例程，这些例程的集合叫候选集；
+2.确定参数数目和各自的类型
+3.寻找接受以上类型的find例程
+然而例程的默认参数和未指定数据类型的实参会影响到重载例程的选择
+举例
+procedure fun(var s:string; var size:Integer = 1024);overload;//R1
+procedure fun(var s:string);overload;//R2
+procedure fun(var size:cardinal);overload;//R3
+procedure fun(var size:integer);overload;//R4
+如果fun('d:\file\dest.txt');如何确定是R1还是R2？如果fun(1024)如何确定是R3还是R4？
+Delphi并未提供默认参数的有效方法，故重载例程中不要定义默认参数；
+对于某个实参，如果多个例程均符合，则调用参数数据类型值域最小的，这里integer比cardinal小，选R4；
+如果实参是带小数点的实数，系统会转成extended类型，并寻找extended类型参数的例程，找不到则提示错误，除非有接受变体类型参数的例程；
+如果实参是未指定具体数据类型的字符、字符串或字符指针（包括值为三者之一的符号常量和直接常量），系统会分别转为char,UnicodeString及pchar；
+另外，变体类型的优先级低于所有简单类型，系统会先按照上述规则进行匹配，无法确定目标例程时，
+系统会调用将参数看成是优先级最低的变体类型而调用接受变体参数的例程；
+举例
+procedure fun(s:byte);overload;
+procedure fun(s:variant);overload;
+这时
+fun(256);
+系统确定256是整数常量，整型按值域从小到大是：
+shortint < byte < smallint < word < integer < cardinal < int64 < uint64
+根据值域排除shortint和byte，在剩下的类型中按照值域从小到大进行筛选；
+最终确定procedure fun(s:variant);overload;

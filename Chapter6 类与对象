@@ -1,0 +1,56 @@
+6.2类与对象
+模拟一个对象：一个结构，一个变量
+type
+   MyClass = class
+   //
+   end;
+var
+   obj:MyClass;
+类中声明的变量称为字段Field，类中声明的例程称为方法Method
+创建对象举例
+type
+   T1 = class
+      s:Integer;
+      end;
+var
+   obj:T1;
+begin
+   obj := T1.create;//如果没有这句可以正常编译但是会导致运行错误
+   obj.s := 239;
+end.
+套嵌类声明举例
+type
+   MyClass = class
+   type
+      NestClass = class
+      end;
+   var
+      NestObj:NestClass;
+      procedure ShowName(var s:NestClass);
+   end;
+var
+   procedure OtherFun(var s:NestClass);//错误，NestClass只能用于MyClass中
+类中声明的数据类型的规定：
+1.类中声明的数据类型只能用于这个类
+2.和普通声明一样，类中的类型只能先声明再使用
+3.类中声明的标识符只能被本类和本类的套嵌类使用，但是一个类却不能使用套嵌类中声明的标识符
+举例
+type
+   T1 = class
+   type
+      m2a = class
+      type
+         m3a = class
+         end;
+      end;
+   
+      m2b = class
+      type
+         m3b = class
+         end;
+      end;
+   end;
+m3b可以使用m2b和T1中声明的所有标识符，m2b或m2a可以使用T1中声明的所有标识符；
+m2a不能使用m3a中声明的标识符，m2a不能使用m2b中声明的标识符；
+
+类的继承举例

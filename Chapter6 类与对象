@@ -813,3 +813,93 @@ begin
    GetClassName(TObject);
    Readln;
 end.
+
+对象的名称仅仅只代表一个指向对象实体的引用而不代表对象实体；
+delphi的对象在分配内存的时候采用堆分配的方式，声明一个对象变量只是在栈中留下一个指针
+obj := M1.Create;
+这样其实是两步，创建一个M1类型的对象；
+返回一个指向这个对象的指针并赋予obj；
+堆中的对象不会自动销毁，所以对象在不被需要的时候应当由用户手动调用析构函数来销毁内存，否则由内存泄漏的可能；
+堆中的对象被销毁以后，栈中的对象变量依然指向这个位置，最好手动设置为nil；
+obj.Free;
+obj := Nil;
+也可以
+FreeAndNil(obj);
+Delphi提供了两个操作符，as和is，用于对象的转型和对象的类型判断；
+is操作符举例
+var
+  obj: TObject;
+begin
+  obj := TObject.Create;//tag
+  if obj is TObject then
+    showmessage('ok');
+  else
+    showmessage('no');
+  FreeAndNil(obj);
+end.
+显示ok，将tag注释掉，显示no；
+将非对象的值进行is操作会无法编译；
+as操作符举例
+var
+  O1: TObject;
+  obj: TButton;
+  ...
+  O1 := obj as TObject;
+  ...
+这里TButton转成了TObject类型；
+as操作实际上是强行截取对象范围，转换后编译器将obj的实体缩小到从TObject中声明的成员，然后将这个引用赋给O1；
+如果TButton中改写了TObject中的虚方法，O1引用的是TButton中改写的方法
+举例
+type
+  T1 = class(TObject)
+    procedure M1;virtual;
+  end;
+  T2 = class(T1)
+    procedure M1;override;
+  end;
+procedure T1.M1;
+begin
+  Writeln('T1.M1');
+end;
+
+procedure T2.M1;
+begin
+  Writeln('T2.M1');
+end;
+var
+  O1: T1;
+  O2: T2;
+begin
+  O2 := T2.Create;
+  O1 := O2 as T1;
+  O1.M1;
+  Readln;
+  O2.Free;
+  o1 := nil;
+end.
+显示T2.M1；寻找Free时，只有TButton中找不到这个方法，才会祖先类中寻找Free；
+TButton中改写的方法也是这样，会被优先选择；
+
+self参数举例
+uses
+  SysUtils, Classes;
+function TList.GetEnumerator: TListEnumerator;
+begin
+  Result := TListEnumerator.Create(Self);
+end;
+var
+  obj: TList;
+begin
+  obj := TList.Create;
+  obj.GetEnumerator;
+end.
+这里用self作为参数调用构造函数创建了一个TListEnumerator对象，self指向调用当前方法GetEnumerator的TList类对象；
+在主程序中以obj调用GetEnumerator方法：
+TListEnumerator.Create(Self);
+这里self指obj；
+类中声明的所有方法（静态的类方法除外），均有一个隐含的参数self，类方法中的self隐含参数指向当前类本身；
+对象方法中的self隐含参数则指向正在调用这个方法的对象实体；
+
+6.8其他的对象类型
+
+6.9多态

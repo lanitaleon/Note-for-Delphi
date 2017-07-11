@@ -922,4 +922,97 @@ object类型和class的区别：
 面向对象的三大特性：封装，继承，多态；
 多态是指将子类的对象赋给父类对象后，父类对象表现出相应的子类行为；
 举例
+unit Unit3;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+  TForm3 = class(TForm)
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  end;
+  TGreed = class
+    procedure Greed; virtual; abstract;
+  end;
+  TCHGreen = class(TGreed)
+    procedure Greed; override;
+  end;
+  TENGreen = class(TGreed)
+    procedure Greed; override;
+  end;
+  TJPGreen = class(TGreed)
+    procedure Greed; override;
+  end;
+
+var
+  Form3: TForm3;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm3.Button1Click(Sender: TObject);
+var
+  obj: TGreed;
+begin
+  obj := TCHGreen.Create;
+  obj.Greed;
+  FreeAndNil(obj);
+end;
+
+procedure TForm3.Button2Click(Sender: TObject);
+var
+  obj: TGreed;
+begin
+  obj := TJPGreen.Create;
+  obj.Greed;
+  FreeAndNil(obj);
+end;
+
+procedure TForm3.Button3Click(Sender: TObject);
+var
+  obj: TGreed;
+begin
+  obj := TENGreen.Create;
+  obj.Greed;
+  FreeAndNil(obj);
+end;
+
+procedure TForm3.FormCreate(Sender: TObject);
+begin
+// do something
+end;
+
+{ TCHGreen }
+
+procedure TCHGreen.Greed;
+begin
+  ShowMessage('zao');
+end;
+
+{ TENGreen }
+
+procedure TENGreen.Greed;
+begin
+  ShowMessage('zaoshang');
+end;
+
+{ TJPGreen }
+
+procedure TJPGreen.Greed;
+begin
+  ShowMessage('zaoshanghao');
+end;
+
+end.
+
 

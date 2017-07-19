@@ -1,0 +1,113 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{F2E19E91-5F96-4AA0-A2AF-13CBA5A885AF}</ProjectGuid>
+			<ProjectVersion>12.0</ProjectVersion>
+			<MainSource>TriangleTest.dpr</MainSource>
+			<Config Condition="'$(Config)'==''">Debug</Config>
+			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
+			<Cfg_1>true</Cfg_1>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
+			<Cfg_2>true</Cfg_2>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_DependencyCheckOutputName>bin\TriangleTest.exe</DCC_DependencyCheckOutputName>
+			<DCC_UsePackage>vcl;rtl;vclx;vclimg;dbrtl;vcldb;bdertl;vclactnband;xmlrtl;dsnap;TeeUI;Tee;TeeDB;adortl;IndyCore;IndySystem;vclie;inet;websnap;webdsnap;inetdb;dsnapcon;inetdbbde;inetdbxpress;soaprtl;DbxCommonDriver;DbxClientDriver;DBXInterBaseDriver;DBXMySQLDriver;dbexpress;dbxcds;dxCoreRS14;dxServerModeRS14;cxDataRS14;cxLibraryRS14;dxGDIPlusRS14;dxThemeRS14;dxADOServerModeRS14;dxDBXServerModeRS14;cxEditorsRS14;dxmdsRS14;dxBarRS14;dxComnRS14;dxBarDBNavRS14;dxBarExtDBItemsRS14;dxBarExtItemsRS14;dxRibbonRS14;cxBarEditItemRS14;dxdbtrRS14;cxPageControlRS14;dxDockingRS14;dxFlowChartRS14;cxPageControldxBarPopupMenuRS14;dxTabbedMDIRS14;dxLayoutControlRS14;dxNavBarRS14;dxorgcRS14;dxdborRS14;cxGridRS14;cxExportRS14;cxPivotGridRS14;cxPivotGridChartRS14;cxPivotGridOLAPRS14;cxTreeListRS14;cxTreeListdxBarPopupMenuRS14;dcldxSkinsCoreRS14;dxSkinsCoreRS14;dxSkinscxPCPainterRS14;dxSkinscxSchedulerPainterRS14;cxSchedulerRS14;dxSkinsdxDLPainterRS14;dxSkinsdxBarPainterRS14;dxSkinsdxNavBarPainterRS14;dxSkinsdxRibbonPainterRS14;cxVerticalGridRS14;RaizeComponentsVcl;RaizeComponentsVclDb;CodeSiteLoggingPkg;CodeSiteDBToolsPkg;vcldbx;IndyProtocols;VclSmp;DBXFirebirdDriver;DBXSybaseASEDriver;DBXSybaseASADriver;DBXOracleDriver;DBXMSSQLDriver;DBXInformixDriver;DBXDb2Driver;dclOfficeXP;PowerPDF;QR5RunD2010;fsvcl2010</DCC_UsePackage>
+			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
+			<DCC_BplOutput>.\bin</DCC_BplOutput>
+			<DCC_ExeOutput>.\bin</DCC_ExeOutput>
+			<DCC_DcuOutput>.\dcu</DCC_DcuOutput>
+			<DCC_Platform>x86</DCC_Platform>
+			<DCC_UnitSearchPath>.\lib;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_ImageBase>00400000</DCC_ImageBase>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+			<DCC_DebugInformation>false</DCC_DebugInformation>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_2)'!=''">
+			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+		</PropertyGroup>
+		<ItemGroup>
+			<DelphiCompile Include="TriangleTest.dpr">
+				<MainSource>MainSource</MainSource>
+			</DelphiCompile>
+			<DCCReference Include="MainUI.pas">
+				<Form>FrmMain</Form>
+			</DCCReference>
+			<DCCReference Include="uPoints.pas"/>
+			<DCCReference Include="uTriangle.pas"/>
+			<DCCReference Include="uGraph.pas"/>
+			<BuildConfiguration Include="Base">
+				<Key>Base</Key>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Debug">
+				<Key>Cfg_2</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Release">
+				<Key>Cfg_1</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+		</ItemGroup>
+		<Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+		<ProjectExtensions>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Delphi.Personality>
+					<Source>
+						<Source Name="MainSource">TriangleTest.dpr</Source>
+					</Source>
+					<Parameters>
+						<Parameters Name="UseLauncher">False</Parameters>
+						<Parameters Name="LoadAllSymbols">True</Parameters>
+						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+					</Parameters>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">True</VersionInfo>
+						<VersionInfo Name="MajorVer">1</VersionInfo>
+						<VersionInfo Name="MinorVer">0</VersionInfo>
+						<VersionInfo Name="Release">0</VersionInfo>
+						<VersionInfo Name="Build">22</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">2052</VersionInfo>
+						<VersionInfo Name="CodePage">936</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName">Friendess, Inc.</VersionInfoKeys>
+						<VersionInfoKeys Name="FileDescription">三角形测试样例</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">1.0.0.22</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName">TriTest</VersionInfoKeys>
+						<VersionInfoKeys Name="LegalCopyright">Copyright (C) 2007-2016, Friendess, Inc.</VersionInfoKeys>
+						<VersionInfoKeys Name="LegalTrademarks">CypCut(TM)</VersionInfoKeys>
+						<VersionInfoKeys Name="OriginalFilename">TriTest.exe</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductName">FSCUT</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="Comments">http://www.fscut.com</VersionInfoKeys>
+					</VersionInfoKeys>
+					<Excluded_Packages>
+						<Excluded_Packages Name="$(BDS)\bin\dclofficexp140.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+						<Excluded_Packages Name="$(BDS)\bin\samplevisualizers140.bpl">Embarcadero Sample Debugger Visualizers</Excluded_Packages>
+					</Excluded_Packages>
+				</Delphi.Personality>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
+		</ProjectExtensions>
+	</Project>

@@ -1,0 +1,60 @@
+program GoldBachTest;
+
+{$APPTYPE CONSOLE}
+uses
+  SysUtils, Math, Variants;
+
+var
+  Index: Integer;
+  PrimeSheet: array of Integer;
+
+function IsPrime(ANum: Integer): Boolean;         // 判断一个数是否为质数
+var
+  J, SqrtOfANum: Integer;
+begin
+  Result := False;
+  SqrtOfANum := Trunc(sqrt(ANum)) + 1;
+  for  J := 0 to Index - 1 do
+    begin
+      if ANum mod PrimeSheet[J] = 0  then
+        Break;
+      if PrimeSheet[J] > SqrtOfANum then
+      begin
+        Result := True;
+        Break;
+      end;
+    end;
+end;
+
+var
+  Head, Tail, Sum: Integer;
+  FNum: Integer;
+begin
+  FNum := 6;
+  Index := 3;
+  SetLength(PrimeSheet, 3);
+  PrimeSheet := VarArrayOf([2, 3, 5]);
+  while True do
+  begin
+    Inc(FNum, 2);
+    SetLength(PrimeSheet, Index + 1);
+    if IsPrime(FNum - 1) then
+    begin
+      PrimeSheet[Index] := FNum - 1;
+      Inc(Index);
+    end;
+    Head := 1;
+    Tail := Index - 1;
+    repeat
+      Sum := PrimeSheet[Head] + PrimeSheet[Tail];
+      if  Sum > FNum then
+        Dec(Tail)
+      else if  Sum < FNum then
+        Inc(Head)
+    until Sum = FNum;
+    if FNum mod 10000000 = 0 then
+    Writeln(Format('%d = %d + %d',[FNum, PrimeSheet[Head], PrimeSheet[Tail]]));
+  end;
+end.
+
+

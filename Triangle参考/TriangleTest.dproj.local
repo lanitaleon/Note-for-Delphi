@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="MainUI.pas"/>
+    <File Path="MainUI.dfm"/>
+    <File Path="uGraph.pas"/>
+    <File Path="uPoints.pas"/>
+    <File Path="uTriangle.pas"/>
+  </ProjectSortOrder>
+</BorlandProject>

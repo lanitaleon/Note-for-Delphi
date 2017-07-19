@@ -1,0 +1,158 @@
+unit CheckTriangle;
+
+interface
+
+uses
+  Windows, Generics.Collections;
+
+type
+  TShapeState = (ssIdle, ssSelected);
+
+  TMyPoint = record
+  public
+    X, Y: Integer;
+    class operator Subtract(const Pnt1, Pnt2: TMyPoint): TMyPoint;
+    function Dots(const Pnt1: TMyPoint): Extended;
+    function Cross(const Pnt1: TMyPoint): Extended;
+  end;
+
+  TTriangle = class
+  public
+    A, B, C: TMyPoint;
+  end;
+
+  TMyTriList = class(TList<TTriangle>)
+    public
+      procedure ClearAndFreeItems;
+  end;
+
+  IJudgePointInTri = interface
+    function IsTriangle(NewTri: TTriangle): Boolean;
+    function PointExist(const PointJudge: TMyPoint; FTriList: TMyTriList): TMyTriList;
+    function OnlyPointJudge(const PointJudge: TMyPoint; NewTri: TTriangle): Boolean;
+    function CreateTri(TotalTri: Integer): TMyTriList;
+  end;
+
+  TCheckPoint = class(TInterfacedObject, IJudgePointInTri)
+  public
+    function IsTriangle(NewTri: TTriangle): Boolean;
+    function PointExist(const PointJudge: TMyPoint; FTriList: TMyTriList): TMyTriList;
+    function OnlyPointJudge(const PointJudge: TMyPoint; NewTri: TTriangle): Boolean;
+    function CreateTri(TotalTri: Integer): TMyTriList;
+    //function PointLine(const PointJudge: TMyPoint; NewTri: TTriangle): Boolean;
+  end;
+
+implementation
+
+function TCheckPoint.CreateTri(TotalTri: Integer): TMyTriList;
+var
+  I: Integer;
+  NewTri: TTriangle;
+begin
+  Result := TMyTriList.Create;
+  try
+  if TotalTri > 0 then
+  begin
+    I := 0;
+    Randomize;
+    while I < TotalTri do
+    begin
+      NewTri := TTriangle.Create;
+      NewTri.A.X := Random(700);
+      NewTri.A.Y := Random(700);
+      NewTri.B.X := Random(700);
+      NewTri.B.Y := Random(700);
+      NewTri.C.X := Random(700);
+      NewTri.C.Y := Random(700);
+      if IsTriangle(NewTri) then
+      begin
+        Result.Add(NewTri);
+        I := I + 1;
+      end else
+        NewTri.Free;
+    end;
+  end;
+  finally
+  end;
+end;
+
+function TCheckPoint.IsTriangle(NewTri: TTriangle): Boolean;
+const
+  Tol = 1E-5;
+var
+  Line1, Line2, Line3: Double;
+begin
+   Result := False;
+   Line1 := Sqrt(Sqr(NewTri.A.X - NewTri.B.X) + Sqr(NewTri.A.Y - NewTri.B.Y));
+   Line2 := Sqrt(Sqr(NewTri.B.X - NewTri.C.X) + Sqr(NewTri.B.Y - NewTri.C.Y));
+   Line3 := Sqrt(Sqr(NewTri.C.X - NewTri.A.X) + Sqr(NewTri.C.Y - NewTri.A.Y));
+   if (Line1 + Line2 - Line3 > Tol) and (Line2 + Line3 - Line1 > Tol) and
+    (Line1 + Line3 - Line2> Tol) then
+     Result := True;
+end;
+
+function TCheckPoint.OnlyPointJudge(const PointJudge: TMyPoint; NewTri: TTriangle): Boolean;
+var
+  V0, V1, V2, P: TMyPoint;
+  u, v, Deno: Extended;
+begin
+  Result := False;
+  P.X := PointJudge.X;
+  P.Y := PointJudge.Y;
+  // v0 = C - A, v1 = B - A, v2 = P - A;
+  // u = ((v1 x v1)(v2 x v0)-(v1 x v0)(v2 x v1)) / ((v0 x v0)(v1 x v1) - (v0 x v1)(v1 x v0))
+  // v = ((v0 x v0)(v2 x v1)-(v0 x v1)(v2 x v0)) / ((v0 x v0)(v1 x v1) - (v0 x v1)(v1 x v0))
+  V0 := NewTri.C - NewTri.A;
+  V1 := NewTri.B - NewTri.A;
+  V2 := P - NewTri.A;
+  Deno := V0.Dots(V0) * V1.Dots(V1) - V0.Dots(V1) * V1.Dots(V0);
+  u := (V1.Dots(V1) * V2.Dots(V0) - V1.Dots(V0) * V2.Dots(V1)) / Deno;
+  v := (V0.Dots(V0) * V2.Dots(V1) - V0.Dots(V1) * V2.Dots(V0)) / Deno;
+  if (u >= 0) and (v >= 0) and (u + v <= 1) then
+    Result := True;
+end;
+
+function TCheckPoint.PointExist(const PointJudge: TMyPoint; FTriList: TMyTriList): TMyTriList;
+var
+  I: Integer;
+begin
+  Result := TMyTriList.Create;
+  for I := 0 to FTriList.Count - 1 do
+  begin
+    if OnlyPointJudge(PointJudge, FTriList.Items[I]) then
+      Result.Add(FTriList[I]);
+  end;
+end;
+
+{ MyPoint }
+
+function TMyPoint.Cross(const Pnt1: TMyPoint): Extended;
+begin
+  Result := Self.X * Pnt1.Y - Self.Y * Pnt1.X;
+end;
+
+function TMyPoint.Dots(const Pnt1: TMyPoint): Extended;
+begin
+  Result := Self.X * Pnt1.X + Self.Y * Pnt1.Y;
+end;
+
+class operator TMyPoint.Subtract(const Pnt1, Pnt2: TMyPoint): TMyPoint;
+begin
+  Result.X := Pnt1.X - Pnt2.X;
+  Result.Y := Pnt1.Y - Pnt2.Y;
+end;
+
+{ TMyTriList }
+
+procedure TMyTriList.ClearAndFreeItems;
+var
+  I: Integer;
+begin
+  for I := 0 to Self.Count - 1 do
+  begin
+    Self[I].Free;
+  end;
+  Self.Clear;
+end;
+
+end.

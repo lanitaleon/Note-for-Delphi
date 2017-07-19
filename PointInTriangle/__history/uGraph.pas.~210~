@@ -1,0 +1,167 @@
+unit uGraph;
+
+interface
+
+uses
+  Types, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, CheckTriangle, Generics.Collections;
+
+type
+  TMyPaintBox = class(TCustomControl)
+    procedure DrawTriangle(TriList: TMyTriList; ACanvas: TCanvas);
+    procedure Clear;
+    procedure SetJudgePoint(const Value: TMyPoint);
+    procedure SetTriList(Value: TMyTriList);
+    procedure SetCounterBtn(Value: Boolean);
+  private
+    FJudgePnt: TMyPoint;
+    FBgVailid: Boolean;
+    FBitmapBuf: TBitmap;
+    FCheckPnt: IJudgePointInTri;
+    FTriList: TMyTriList;
+    FCounterBtn: Boolean;
+    function GetPointCheck: IJudgePointInTri;
+  protected
+    procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
+    procedure Paint; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure ClearShapes;
+    property JudgePoint: TMyPoint read FJudgePnt write SetJudgePoint;
+    property TriList: TMyTriList read FTriList write SetTriList;
+    property CounterClick: Boolean read FCounterBtn write SetCounterBtn;
+  end;
+
+implementation
+
+uses
+  Math, DateUtils;
+
+procedure TMyPaintBox.Clear;
+begin
+  Canvas.FillRect(ClientRect);
+end;
+
+procedure TMyPaintBox.ClearShapes;
+var
+  I: Integer;
+begin
+  FTriList.ClearAndFreeItems;
+  FBgVailid := False;
+  FBitmapBuf.Canvas.FillRect(FBitmapBuf.Canvas.ClipRect);
+end;
+
+constructor TMyPaintBox.Create(AOwner: TComponent);
+begin
+  inherited;
+  DoubleBuffered := True;
+  FCounterBtn := False;
+  FTriList := TMyTriList.Create;
+  Canvas.Pen.Width := 1;
+  Canvas.Pen.Color := clRed;
+  Canvas.Brush.Color := clWhite;
+  FBitmapBuf := TBitmap.Create;
+  FBgVailid := False;
+end;
+
+function TMyPaintBox.GetPointCheck: IJudgePointInTri;
+begin
+  Result := TCheckPoint.Create;
+end;
+
+procedure TMyPaintBox.Paint;
+var
+  ExistList: TMyTriList;
+  Tm: TDateTime;
+begin
+  inherited;
+  Canvas.FillRect(ClientRect);
+  if FCounterBtn then
+  begin
+    FCheckPnt := GetPointCheck;
+    try
+      Canvas.Pen.Color := clRed;
+      Tm := Now;
+      if not FBgVailid then
+      begin
+        FBitmapBuf.Canvas.Pen.Color := clRed;
+        FBitmapBuf.Width := Self.ClientWidth;
+        FBitmapBuf.Height := Self.ClientHeight;
+        DrawTriangle(FTriList, FBitmapBuf.Canvas);
+        FBgVailid := True;
+      end;
+      Self.Canvas.Draw(0, 0, FBitmapBuf);
+      OutputDebugString(PChar('Draw All' + IntTOStr(MilliSecondsBetween(Tm, Now))));
+      ExistList := FCheckPnt.PointExist(FJudgePnt, FTriList);
+      if ExistList.Count > 0 then
+      begin
+        Canvas.Pen.Color := clGreen;
+        DrawTriangle(ExistList, Self.Canvas);
+      end;
+    finally
+      ExistList.Free;
+    end;
+  end;
+end;
+
+procedure TMyPaintBox.MouseMove(Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+  FJudgePnt.X := X;
+  FJudgePnt.Y := Y;
+  Invalidate;
+end;
+
+destructor TMyPaintBox.Destroy;
+var
+  I: Integer;
+begin
+  ClearShapes;
+  FTriList.Free;
+  FBitmapBuf.Free;
+  inherited;
+end;
+
+procedure TMyPaintBox.DrawTriangle(TriList: TMyTriList; ACanvas: TCanvas);
+var
+  NewTri: TTriangle;
+  I: Integer;
+begin
+  try
+    if TriList.Count > 0 then
+    begin
+      for I := 0 to TriList.Count - 1 do
+      begin
+        NewTri := TriList.Items[i];
+        ACanvas.MoveTo(NewTri.A.X, NewTri.A.Y);
+        ACanvas.LineTo(NewTri.B.X, NewTri.B.Y);
+        ACanvas.MoveTo(NewTri.B.X, NewTri.B.Y);
+        ACanvas.LineTo(NewTri.C.X, NewTri.C.Y);
+        ACanvas.MoveTo(NewTri.C.X, NewTri.C.Y);
+        ACanvas.LineTo(NewTri.A.X, NewTri.A.Y);
+      end;
+    end;
+  finally
+    //NewTri.Free;
+  end;
+end;
+
+procedure TMyPaintBox.SetCounterBtn(Value: Boolean);
+begin
+  FCounterBtn := Value;
+  Invalidate;
+end;
+
+procedure TMyPaintBox.SetJudgePoint(const Value: TMyPoint);
+begin
+  FJudgePnt := Value;
+  Invalidate;
+end;
+
+procedure TMyPaintBox.SetTriList(Value: TMyTriList);
+begin
+  FTriList := Value;
+  Invalidate;
+end;
+
+end.

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2017/07/10 09:39:49.134.pas,D:\H\Unit3.pas=D:\H\Triangle\Unit3.pas</Transaction>
+    <Transaction>2017/07/10 09:39:49.134.dfm,D:\H\Unit3.dfm=D:\H\Triangle\Unit3.dfm</Transaction>
+    <Transaction>2017/07/10 09:44:32.455.dproj,D:\H\Project12.dproj=D:\H\Triangle\Project12.dproj</Transaction>
+    <Transaction>2017/07/10 10:38:22.348.pas,D:\H\Triangle\Unit1.pas=D:\H\Triangle\CheckTriangle.pas</Transaction>
+    <Transaction>2017/07/10 10:39:09.700.pas,D:\H\Triangle\Unit3.pas=D:\H\Triangle\TriangleUI.pas</Transaction>
+    <Transaction>2017/07/10 10:39:09.700.dfm,D:\H\Triangle\Unit3.dfm=D:\H\Triangle\TriangleUI.dfm</Transaction>
+    <Transaction>2017/07/12 15:07:13.161.pas,D:\H\Triangle\Unit1.pas=D:\H\Triangle\MyTriangle.pas</Transaction>
+    <Transaction>2017/07/12 15:07:45.437.pas,D:\H\Triangle\MyTriangle.pas=</Transaction>
+    <Transaction>2017/07/14 13:30:40.335.pas,D:\H\Triangle\Unit1.pas=D:\H\Triangle\uPaint.pas</Transaction>
+    <Transaction>2017/07/14 13:30:40.335.dfm,D:\H\Triangle\Unit1.dfm=D:\H\Triangle\uPaint.dfm</Transaction>
+    <Transaction>2017/07/14 13:32:52.385.pas,D:\H\Triangle\uPaint.pas=</Transaction>
+    <Transaction>2017/07/14 13:32:52.385.dfm,D:\H\Triangle\uPaint.dfm=</Transaction>
+    <Transaction>2017/07/14 13:46:23.534.pas,D:\H\Triangle\Unit1.pas=D:\H\Triangle\uPaint.pas</Transaction>
+    <Transaction>2017/07/14 13:46:23.534.dfm,D:\H\Triangle\Unit1.dfm=D:\H\Triangle\uPaint.dfm</Transaction>
+    <Transaction>2017/07/14 14:18:53.026.pas,D:\H\Triangle\Unit1.pas=D:\H\Triangle\uGraph.pas</Transaction>
+    <Transaction>2017/07/14 14:56:44.538.pas,D:\H\Triangle\Unit1.pas=D:\H\Triangle\uFrmTest.pas</Transaction>
+    <Transaction>2017/07/14 14:56:44.538.dfm,D:\H\Triangle\Unit1.dfm=D:\H\Triangle\uFrmTest.dfm</Transaction>
+    <Transaction>2017/07/14 15:33:25.782.pas,D:\H\Triangle\uFrmTest.pas=</Transaction>
+    <Transaction>2017/07/14 15:33:25.782.dfm,D:\H\Triangle\uFrmTest.dfm=</Transaction>
+  </Transactions>  <ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="CheckTriangle.pas"/>
+    <File Path="TriangleUI.pas"/>
+    <File Path="TriangleUI.dfm"/>
+    <File Path="uGraph.pas"/>
+  </ProjectSortOrder>
+</BorlandProject>

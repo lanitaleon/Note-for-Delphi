@@ -1,0 +1,22 @@
+unit uPaint;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
+  Dialogs, StdCtrls;
+
+type
+  TfrmPainter = class(TCustomControl)
+    RadioButton1: TRadioButton;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+implementation
+
+{$R *.dfm}
+
+end.

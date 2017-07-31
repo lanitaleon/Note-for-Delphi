@@ -1,0 +1,23 @@
+2-4 object pascal对象服务
+
+重载方法和继承相结合时
+
+TBase = class(TObject)
+...
+  function DisappearRoutine1: String; overload; virtual;
+  function DisappearRoutine1(const sName: String): String; overload; virtual;
+...
+
+TDerived = class(TBase)
+...
+  function DisappearRoutine1: String; reintroduce; overload;
+  function DisappearRoutine1(const sName: String): String; reintroduce; overload;
+...
+* 要使用reintroduce关键字避免编译器产生警告信息；
+* 重载方法以对象声明类型为主
+* 首先在子类搜索适当的方法
+
+原本delphi是会有垃圾收集机制的(叹
+
+第三章
+place holder方法是VCL Framework在设计核心组件类时最常使用的手法

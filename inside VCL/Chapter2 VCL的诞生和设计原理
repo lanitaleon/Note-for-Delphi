@@ -1,0 +1,15 @@
+2-4 object pascal对象服务
+
+重载方法和继承相结合时
+
+TBase = class(TObject)
+...
+  function DisappearRoutine1: String; overload; virtual;
+  function DisappearRoutine1(const sName: String): String; overload; virtual;
+...
+
+TDerived = class(TBase)
+...
+  function DisappearRoutine1: String; reintroduce; overload;
+  function DisappearRoutine1(const sName: String): String; reintroduce; overload;
+...

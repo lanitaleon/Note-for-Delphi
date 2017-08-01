@@ -37,4 +37,22 @@ Bootstrap设计法
 如TCanvas和TControlCanvas类；
 
 notify设计模式
-Page116
+
+TComponent提供基础组件服务，TControl加入处理鼠标事件等功能形成准组件类，TWinControl封装Windows控件；
+通用类到准功能类到末端类
+
+TGraphicControl：不封装Windows，自定义绘制类
+
+Canvas.Lock和Unlock;
+* 联想多线程博客http://www.cnblogs.com/del/archive/2009/02/05/1384713.html
+
+TBevel继承TGraphicControl，改写paint方法；
+处理WM_PAINT窗口消息并实现了绘图，没有使用Windows的Handle；
+
+TCustomControl：既想封装Windows又想自定义绘制
+
+3-4-5 TCanvas和TControlCanvas
+TCanvas定义实现各种不同的运算方法，但是关键的画布区域Handle值却让派生类来改写提供
+如TControlCanvas类，这就是前面说的Bootstrap也叫Lazy Load技术；
+
+3-5 COMAdmin类的设计与实现

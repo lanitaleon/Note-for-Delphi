@@ -21,3 +21,20 @@ TDerived = class(TBase)
 
 第三章
 place holder方法是VCL Framework在设计核心组件类时最常使用的手法
+逐渐增加法
+父类提供基础实现，派生类提供更多实现；
+先使用inherited关键字调用父类的构造函数；
+如TControl的构造函数；
+三明治手法
+逐渐增加法的变异，在使用inherited之前先加入一些派生类的程序代码，
+然后使用inherited调用父类方法，最后再加入派生类实现代码；因此叫三明治；
+如TControl的ReadState；
+覆写父类实现法
+一种是完全覆写，编译器会提供警告；
+一种不是完全覆写，不会产生警告；
+Bootstrap设计法
+父类会定义各种服务方法，但是这些服务都需要特定的标地，这个特定的标地只由派生类提供；
+如TCanvas和TControlCanvas类；
+
+notify设计模式
+Page116

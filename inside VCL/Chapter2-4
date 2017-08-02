@@ -56,3 +56,6 @@ TCanvas定义实现各种不同的运算方法，但是关键的画布区域Hand
 如TControlCanvas类，这就是前面说的Bootstrap也叫Lazy Load技术；
 
 3-5 COMAdmin类的设计与实现
+COM+管理服务中的三个接口：ICOMAdminCatalog，ICatalogCollection，ICatalogObject
+
+4 VCLFramework和窗口消息

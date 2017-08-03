@@ -59,3 +59,4 @@ TCanvas定义实现各种不同的运算方法，但是关键的画布区域Hand
 COM+管理服务中的三个接口：ICOMAdminCatalog，ICatalogCollection，ICatalogObject
 
 4 VCLFramework和窗口消息
+4-3 TObject的消息分派服务
